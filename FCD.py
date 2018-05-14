@@ -21,6 +21,7 @@ from scipy.misc import imread
 from scipy import linalg
 import pathlib
 import urllib
+import warnings
 
 import keras
 import keras.backend as K
