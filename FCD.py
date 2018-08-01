@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-''' Defines the functions necessary for calculating the Frechet Inception 
+''' Defines the functions necessary for calculating the Frechet ChemNet 
 Distance (FCD) to evalulate generative models for molecules.
 
 The FCD metric calculates the distance between two distributions of molecules.
@@ -7,8 +7,8 @@ Typically, we have summary statistics (mean & covariance matrix) of one
 of these distributions, while the 2nd distribution is given by the generative 
 model.
 
-The FID is calculated by assuming that X_1 and X_2 are the activations of
-the preulitmate layer of the CHEMBLNET for generated samples and real world
+The FCD is calculated by assuming that X_1 and X_2 are the activations of
+the preulitmate layer of the CHEMNET for generated samples and real world
 samples respectivly.
 '''
 
@@ -40,16 +40,16 @@ def calculate_frechet_distance(mu1, sigma1, mu2, sigma2, eps=1e-6):
 
     Params:
     -- mu1:    The mean of the activations of preultimate layer of the
-               CHEMBLNET ( like returned by the function 'get_predictions')
+               CHEMNET ( like returned by the function 'get_predictions')
                for generated samples.
     -- mu2:    The mean of the activations of preultimate layer of the
-               CHEMBLNET ( like returned by the function 'get_predictions')
+               CHEMNET ( like returned by the function 'get_predictions')
                for real samples.
     -- sigma1: The covariance matrix of the activations of preultimate layer of the
-               CHEMBLNET ( like returned by the function 'get_predictions')
+               CHEMNET ( like returned by the function 'get_predictions')
                for generated samples.
     -- sigma2: The covariance matrix of the activations of preultimate layer of the
-               CHEMBLNET ( like returned by the function 'get_predictions')
+               CHEMNET ( like returned by the function 'get_predictions')
                for real samples.
 
     Returns:
