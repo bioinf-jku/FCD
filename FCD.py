@@ -14,6 +14,10 @@ samples respectivly.
 
 from __future__ import absolute_import, division, print_function
 import numpy as np
+from multiprocessing import Pool
+from rdkit import Chem
+import warnings
+warnings.filterwarnings('ignore')
 import os
 import gzip, pickle
 import tensorflow as tf
@@ -21,8 +25,6 @@ from scipy.misc import imread
 from scipy import linalg
 import pathlib
 import urllib
-import warnings
-
 import keras
 import keras.backend as K
 from keras.models import load_model
@@ -68,8 +70,6 @@ def calculate_frechet_distance(mu1, sigma1, mu2, sigma2, eps=1e-6):
     # product might be almost singular
     covmean, _ = linalg.sqrtm(sigma1.dot(sigma2), disp=False)
     if not np.isfinite(covmean).all():
-        msg = "fid calculation produces singular product; adding %s to diagonal of cov estimates" % eps
-        warnings.warn(msg)
         offset = np.eye(sigma1.shape[0]) * eps
         covmean = linalg.sqrtm((sigma1 + offset).dot(sigma2 + offset))
 
@@ -159,20 +159,33 @@ def myGenerator_predict(smilesList, batch_size=128, pad_len=350):
             x = np.asarray(x)/35
             yield x
 #-------------------------------------------------------------------------------
-
-def get_predictions(gen_mol):
+def load_ref_model(model_file = None):
+    if model_file==None:
+        model_file = 'ChemNet_v0.13_pretrained.h5'
     masked_loss_function = build_masked_loss(K.binary_crossentropy,0.5)
-    print('loading model')
-    model = load_model('model_FCD.h5', 
+    model = load_model(model_file, 
                        custom_objects={'masked_loss_function':masked_loss_function,'masked_accuracy':masked_accuracy})
     model.pop()
     model.pop()
-    print('calculating activations')
+    return(model)
+#-------------------------------------------------------------------------------
+def get_predictions(model, gen_mol):
     gen_mol_act = model.predict_generator(myGenerator_predict(gen_mol, batch_size=128),
                                           steps= np.ceil(len(gen_mol)/128))
     return gen_mol_act
 #-------------------------------------------------------------------------------                    
-                    
+def canonical(smi):
+    try:
+        smi = Chem.MolToSmiles(Chem.MolFromSmiles(smi))
+    except:
+        pass
+    return smi
+#-------------------------------------------------------------------------------
+def canoncial_smiles(smiles):
+    pool = Pool(32)
+    smiles = pool.map(canonical, smiles)
+    pool.close()
+    return(smiles)
 
 
 
