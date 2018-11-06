@@ -1,0 +1,2 @@
+# MANIFEST.in
+include fcd/ChemNet_v0.13_pretrained.h5
