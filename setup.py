@@ -24,4 +24,5 @@ setup(name='FCD',
       extras_require={
           'rdkit': ['rdkit'],
       },
+      include_package_data=True,
       )
