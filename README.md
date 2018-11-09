@@ -1,4 +1,4 @@
-# Fréchet ChEMNet Distance
+# Fréchet ChemNet Distance
 
 The new wave of successful generative models in machine learning has increased
 the interest in deep learning driven de novo drug design. However, assessing
