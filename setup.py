@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
-from distutils.core import setup
+#from distutils.core import setup
+from setuptools import setup
 
 with open("README.md", "r", encoding='utf8') as fh:
     long_description = fh.read()
