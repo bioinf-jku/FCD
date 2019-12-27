@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-''' Defines the functions necessary for calculating the Frechet ChemNet 
+''' Defines the functions necessary for calculating the Frechet ChemNet
 Distance (FCD) to evalulate generative models for molecules.
 
 The FCD metric calculates the distance between two distributions of molecules.
 Typically, we have summary statistics (mean & covariance matrix) of one
-of these distributions, while the 2nd distribution is given by the generative 
+of these distributions, while the 2nd distribution is given by the generative
 model.
 
 The FCD is calculated by assuming that X_1 and X_2 are the activations of
@@ -21,7 +21,6 @@ warnings.filterwarnings('ignore')
 import os
 import gzip, pickle
 import tensorflow as tf
-from scipy.misc import imread
 from scipy import linalg
 import pathlib
 import urllib
@@ -35,7 +34,7 @@ def calculate_frechet_distance(mu1, sigma1, mu2, sigma2, eps=1e-6):
     The Frechet distance between two multivariate Gaussians X_1 ~ N(mu_1, C_1)
     and X_2 ~ N(mu_2, C_2) is
             d^2 = ||mu_1 - mu_2||^2 + Tr(C_1 + C_2 - 2*sqrt(C_1*C_2)).
-            
+
     Stable version by Dougal J. Sutherland.
 
     Params:
@@ -112,7 +111,7 @@ def masked_accuracy(y_true, y_pred):
 #-------------------------------------------------------------------------------
 
 def get_one_hot(smiles, pad_len=-1):
-    one_hot = asym = ['C','N','O', 'H', 'F', 'Cl', 'P', 'B', 'Br', 'S', 'I', 'Si', 
+    one_hot = asym = ['C','N','O', 'H', 'F', 'Cl', 'P', 'B', 'Br', 'S', 'I', 'Si',
                       '#', '(', ')', '+', '-', '1', '2', '3', '4', '5', '6', '7', '8', '=', '[', ']', '@',
                       'c', 'n', 'o', 's', 'X', '.']
     smiles = smiles + '.'
@@ -142,14 +141,14 @@ def get_one_hot(smiles, pad_len=-1):
 #-------------------------------------------------------------------------------
 
 def myGenerator_predict(smilesList, batch_size=128, pad_len=350):
-    while 1: 
+    while 1:
         N = len(smilesList)
-        nn = pad_len        
+        nn = pad_len
         idxSamples = np.arange(N)
-        
+
         for j in range(int(np.ceil(N / batch_size))):
             idx = idxSamples[j*batch_size  : min((j+1)*batch_size,N)]
-    
+
             x = []
             for i in range(0,len(idx)):
                 currentSmiles = smilesList[idx[i]]
@@ -163,7 +162,7 @@ def load_ref_model(model_file = None):
     if model_file==None:
         model_file = 'ChemNet_v0.13_pretrained.h5'
     masked_loss_function = build_masked_loss(K.binary_crossentropy,0.5)
-    model = load_model(model_file, 
+    model = load_model(model_file,
                        custom_objects={'masked_loss_function':masked_loss_function,'masked_accuracy':masked_accuracy})
     model.pop()
     model.pop()
@@ -173,7 +172,7 @@ def get_predictions(model, gen_mol):
     gen_mol_act = model.predict_generator(myGenerator_predict(gen_mol, batch_size=128),
                                           steps= np.ceil(len(gen_mol)/128))
     return gen_mol_act
-#-------------------------------------------------------------------------------                    
+#-------------------------------------------------------------------------------
 def canonical(smi):
     try:
         smi = Chem.MolToSmiles(Chem.MolFromSmiles(smi))
