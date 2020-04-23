@@ -14,6 +14,9 @@ samples respectivly.
 
 from __future__ import absolute_import, division, print_function
 
+import os
+import pkgutil
+import tempfile
 import warnings
 from functools import lru_cache
 from multiprocessing import Pool
@@ -157,13 +160,33 @@ def myGenerator_predict(smilesList, batch_size=128, pad_len=350):
             yield x
 
 
-@lru_cache(maxsize=1)
+@lru_cache(maxsize=4)
 def load_ref_model(model_file=None):
+    """Loads the Chemnet model. If called without arguments it will use the
+    model in the package. In case you want to use a different one provide the path
+
+    Args:
+        model_file: Path to model. (default=None)
+    """
+
     if model_file is None:
-        model_file = 'ChemNet_v0.13_pretrained.h5'
+        chemnet_model_filename = 'ChemNet_v0.13_pretrained.h5'
+        model_bytes = pkgutil.get_data('fcd', chemnet_model_filename)
+
+        tmpdir = tempfile.TemporaryDirectory()
+        model_file = os.path.join(tmpdir.name, chemnet_model_filename)
+
+        with open(model_file, 'wb') as f:
+            f.write(model_bytes)
+
+        print(f'Saved ChemNet model to \'{model_file}\'')
+
     masked_loss_function = build_masked_loss(K.binary_crossentropy, 0.5)
-    model = load_model(model_file,
-                       custom_objects={'masked_loss_function': masked_loss_function, 'masked_accuracy': masked_accuracy})
+    model = load_model(
+        model_file,
+        custom_objects={
+            'masked_loss_function': masked_loss_function,
+            'masked_accuracy': masked_accuracy})
     model.pop()
     model.pop()
     return model
@@ -177,12 +200,30 @@ def get_predictions(model, gen_mol):
 
 def canonical(smi):
     try:
-        smi = Chem.MolToSmiles(Chem.MolFromSmiles(smi))
+        return Chem.MolToSmiles(Chem.MolFromSmiles(smi))
     except:
-        pass
-    return smi
+        return None
 
 
-def canoncial_smiles(smiles, njobs=32):
+def canonical_smiles(smiles, njobs=32):
     with Pool(njobs) as pool:
         return pool.map(canonical, smiles)
+
+
+def get_fcd(model, smiles1, smiles2):
+    act1 = get_predictions(model, smiles1)
+    act2 = get_predictions(model, smiles2)
+
+    mu1 = np.mean(act1, axis=0)
+    sigma1 = np.cov(act1.T)
+
+    mu2 = np.mean(act2, axis=0)
+    sigma2 = np.cov(act2.T)
+
+    fcd_score = calculate_frechet_distance(
+        mu1=mu1,
+        mu2=mu2,
+        sigma1=sigma1,
+        sigma2=sigma2)
+
+    return fcd_score

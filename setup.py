@@ -7,7 +7,7 @@ with open("README.md", "r", encoding='utf8') as fh:
     long_description = fh.read()
 
 setup(name='FCD',
-      version='1.0.1',
+      version='1.1',
       author='',
       author_email='',
       description='Fréchet ChEMNet Distance',
@@ -25,5 +25,5 @@ setup(name='FCD',
       extras_require={
           'rdkit': ['rdkit'],
       },
-      include_package_data=True,
+    #   include_package_data=True,
       )

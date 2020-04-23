@@ -23,3 +23,8 @@ b) chemical and c) biological properties as real molecules. We further provide a
 easy-to-use implementation that only requires the SMILES representation of the
 generated molecules as input to calculate the FCD.
 
+## Version 1.1 changes
+- Got rid of unneeded imports
+- `load_ref_model` doesn't need an argument any more to load a model.
+- `canonical` and `canonical_smiles` now return `None` for invalid Smiles.
+- Added `get_fcd` as a quick way to get a score
