@@ -13,13 +13,17 @@ samples respectivly.
 '''
 
 from __future__ import absolute_import, division, print_function
-from keras.models import load_model
-import keras.backend as K
-from scipy import linalg
-import numpy as np
-from multiprocessing import Pool
-from rdkit import Chem
+
 import warnings
+from functools import lru_cache
+from multiprocessing import Pool
+
+import keras.backend as K
+import numpy as np
+from keras.models import load_model
+from rdkit import Chem
+from scipy import linalg
+
 warnings.filterwarnings('ignore')
 
 
@@ -76,7 +80,6 @@ def calculate_frechet_distance(mu1, sigma1, mu2, sigma2, eps=1e-6):
     tr_covmean = np.trace(covmean)
 
     return diff.dot(diff) + np.trace(sigma1) + np.trace(sigma2) - 2 * tr_covmean
-# -------------------------------------------------------------------------------
 
 
 def build_masked_loss(loss_function, mask_value):
@@ -95,7 +98,6 @@ def build_masked_loss(loss_function, mask_value):
         return loss_function(y_true * mask, y_pred * mask)
 
     return masked_loss_function
-# -------------------------------------------------------------------------------
 
 
 def masked_accuracy(y_true, y_pred):
@@ -103,13 +105,13 @@ def masked_accuracy(y_true, y_pred):
     c = K.sum(K.cast(K.not_equal(y_true, 0.5), K.floatx()))
     acc = (a) / c
     return acc
-# -------------------------------------------------------------------------------
 
 
 def get_one_hot(smiles, pad_len=-1):
-    one_hot = ['C', 'N', 'O', 'H', 'F', 'Cl', 'P', 'B', 'Br', 'S', 'I', 'Si',
-                      '#', '(', ')', '+', '-', '1', '2', '3', '4', '5', '6', '7', '8', '=', '[', ']', '@',
-                      'c', 'n', 'o', 's', 'X', '.']
+    one_hot = [
+        'C', 'N', 'O', 'H', 'F', 'Cl', 'P', 'B', 'Br', 'S', 'I', 'Si',
+        '#', '(', ')', '+', '-', '1', '2', '3', '4', '5', '6', '7', '8', '=', '[', ']', '@',
+        'c', 'n', 'o', 's', 'X', '.']
     smiles = smiles + '.'
     if pad_len < 0:
         vec = np.zeros((len(smiles), len(one_hot)))
@@ -134,7 +136,6 @@ def get_one_hot(smiles, pad_len=-1):
             vec[j, one_hot.index('.')] = 1
             cont = False
     return (vec)
-# -------------------------------------------------------------------------------
 
 
 def myGenerator_predict(smilesList, batch_size=128, pad_len=350):
@@ -154,9 +155,9 @@ def myGenerator_predict(smilesList, batch_size=128, pad_len=350):
 
             x = np.asarray(x)/35
             yield x
-# -------------------------------------------------------------------------------
 
 
+@lru_cache(maxsize=1)
 def load_ref_model(model_file=None):
     if model_file is None:
         model_file = 'ChemNet_v0.13_pretrained.h5'
@@ -165,15 +166,13 @@ def load_ref_model(model_file=None):
                        custom_objects={'masked_loss_function': masked_loss_function, 'masked_accuracy': masked_accuracy})
     model.pop()
     model.pop()
-    return(model)
-# -------------------------------------------------------------------------------
+    return model
 
 
 def get_predictions(model, gen_mol):
     gen_mol_act = model.predict_generator(myGenerator_predict(gen_mol, batch_size=128),
                                           steps=np.ceil(len(gen_mol)/128))
     return gen_mol_act
-# -------------------------------------------------------------------------------
 
 
 def canonical(smi):
@@ -182,11 +181,8 @@ def canonical(smi):
     except:
         pass
     return smi
-# -------------------------------------------------------------------------------
 
 
-def canoncial_smiles(smiles):
-    pool = Pool(32)
-    smiles = pool.map(canonical, smiles)
-    pool.close()
-    return(smiles)
+def canoncial_smiles(smiles, njobs=32):
+    with Pool(njobs) as pool:
+        return pool.map(canonical, smiles)
