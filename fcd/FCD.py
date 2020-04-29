@@ -124,8 +124,8 @@ def get_one_hot(smiles, pad_len=-1):
     j = 0
     i = 0
     while cont:
-        if smiles[i+1] in ['r', 'i', 'l']:
-            sym = smiles[i:i+2]
+        if smiles[i + 1] in ['r', 'i', 'l']:
+            sym = smiles[i:i + 2]
             i += 2
         else:
             sym = smiles[i]
@@ -135,7 +135,7 @@ def get_one_hot(smiles, pad_len=-1):
         else:
             vec[j, one_hot.index('X')] = 1
         j += 1
-        if smiles[i] == '.' or j >= (pad_len-1) and pad_len > 0:
+        if smiles[i] == '.' or j >= (pad_len - 1) and pad_len > 0:
             vec[j, one_hot.index('.')] = 1
             cont = False
     return (vec)
@@ -148,7 +148,7 @@ def myGenerator_predict(smilesList, batch_size=128, pad_len=350):
         idxSamples = np.arange(N)
 
         for j in range(int(np.ceil(N / batch_size))):
-            idx = idxSamples[j*batch_size: min((j+1)*batch_size, N)]
+            idx = idxSamples[j * batch_size: min((j + 1) * batch_size, N)]
 
             x = []
             for i in range(0, len(idx)):
@@ -156,7 +156,7 @@ def myGenerator_predict(smilesList, batch_size=128, pad_len=350):
                 smiEnc = get_one_hot(currentSmiles, pad_len=nn)
                 x.append(smiEnc)
 
-            x = np.asarray(x)/35
+            x = np.asarray(x) / 35
             yield x
 
 
@@ -179,8 +179,6 @@ def load_ref_model(model_file=None):
         with open(model_file, 'wb') as f:
             f.write(model_bytes)
 
-        print(f'Saved ChemNet model to \'{model_file}\'')
-
     masked_loss_function = build_masked_loss(K.binary_crossentropy, 0.5)
     model = load_model(
         model_file,
@@ -193,8 +191,9 @@ def load_ref_model(model_file=None):
 
 
 def get_predictions(model, gen_mol):
-    gen_mol_act = model.predict_generator(myGenerator_predict(gen_mol, batch_size=128),
-                                          steps=np.ceil(len(gen_mol)/128))
+    gen_mol_act = model.predict_generator(
+        myGenerator_predict(gen_mol, batch_size=128),
+        steps=np.ceil(len(gen_mol) / 128))
     return gen_mol_act
 
 
@@ -210,7 +209,10 @@ def canonical_smiles(smiles, njobs=32):
         return pool.map(canonical, smiles)
 
 
-def get_fcd(model, smiles1, smiles2):
+def get_fcd(smiles1, smiles2, model=None):
+    if model is None:
+        model = load_ref_model()
+
     act1 = get_predictions(model, smiles1)
     act2 = get_predictions(model, smiles2)
 

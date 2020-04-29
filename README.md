@@ -18,11 +18,13 @@ conda install rdkit -c rdkit
 
 # Requirements
 ```
+python>3<3.8
 numpy
 tensorflow>1.8
 keras>2.1
 scipy
 ```
+rdkit is causing troubles with python3.8 for me. You might wanna opt for 3.7.
 For the effect of versions on results see `tests/test_results.csv`.
 Using the current versions of tensorflow (2.1.0) and keras (2.3.1) results differ from previous versions but
 are probably negligible.

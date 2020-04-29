@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-#from distutils.core import setup
+# from distutils.core import setup
 from setuptools import setup
 
 with open("README.md", "r", encoding='utf8') as fh:
@@ -25,5 +25,5 @@ setup(name='FCD',
       extras_require={
           'rdkit': ['rdkit'],
       },
-    #   include_package_data=True,
+      include_package_data=True,
       )
