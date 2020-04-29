@@ -1,25 +1,37 @@
 # Fréchet ChemNet Distance
 
-The new wave of successful generative models in machine learning has increased
-the interest in deep learning driven de novo drug design. However, assessing
-the performance of such generative models is notoriously difficult. Metrics that
-are typically used to assess the performance of such generative models are the
-percentage of chemically valid molecules or the similarity to real molecules in
-terms of particular descriptors, such as the partition coefficient (logP) or druglike-
-ness. However, method comparison is difficult because of the inconsistent use of
-evaluation metrics, the necessity for multiple metrics, and the fact that some of
-these measures can easily be tricked by simple rule-based systems. We propose a
-novel distance measure between two sets of molecules, called Fréchet ChemNet
-distance (FCD), that can be used as an evaluation metric for generative models. The
-FCD is similar to a recently established performance metric for comparing image
-generation methods, the Fréchet Inception Distance (FID). Whereas the FID uses
-one of the hidden layers of InceptionNet, the FCD utilizes the penultimate layer
-of a deep neural network called “ChemNet”, which was trained to predict drug
-activities. Thus, the FCD metric takes into account chemically and biologically
-relevant information about molecules, and also measures the diversity of the set
-via the distribution of generated molecules. The FCD’s advantage over previous
-metrics is that it can detect if generated molecules are a) diverse and have similar
-b) chemical and c) biological properties as real molecules. We further provide an
-easy-to-use implementation that only requires the SMILES representation of the
-generated molecules as input to calculate the FCD.
+Code for the paper "Fréchet ChemNet Distance: A Metric for Generative Models for Molecules in Drug Discovery"
+[JCIM](https://pubs.acs.org/doi/10.1021/acs.jcim.8b00234) /
+[ArXiv](https://arxiv.org/abs/1803.09518)
 
+
+## Installation
+You can install the FCD using
+```
+pip install fcd
+```
+
+rdkit is best install via conda
+```
+conda install rdkit -c rdkit
+```
+
+# Requirements
+```
+python>3<3.8
+numpy
+tensorflow>1.8
+keras>2.1
+scipy
+```
+rdkit is causing troubles with python3.8 for me. You might wanna opt for 3.7.
+For the effect of versions on results see `tests/test_results.csv`.
+Using the current versions of tensorflow (2.1.0) and keras (2.3.1) results differ from previous versions but
+are probably negligible.
+
+
+## Version 1.1 changes
+- Got rid of unneeded imports
+- `load_ref_model` doesn't need an argument any more to load a model.
+- `canonical` and `canonical_smiles` now return `None` for invalid smiles.
+- Added `get_fcd` as a quick way to get a the fcd score from two lists of smiles.

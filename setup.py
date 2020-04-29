@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 
-#from distutils.core import setup
+# from distutils.core import setup
 from setuptools import setup
 
 with open("README.md", "r", encoding='utf8') as fh:
     long_description = fh.read()
 
 setup(name='FCD',
-      version='1.0.1',
+      version='1.1',
       author='',
       author_email='',
       description='Fréchet ChEMNet Distance',

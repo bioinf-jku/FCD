@@ -1,7 +1,0 @@
-keras
-numpy
-scipy
-tensorflow
-
-[rdkit]
-rdkit
