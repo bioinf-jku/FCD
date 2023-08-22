@@ -1,4 +1,4 @@
-from .FCD import calculate_frechet_distance, build_masked_loss, masked_accuracy, get_one_hot, myGenerator_predict, \
-    load_ref_model, get_predictions, canonical, canonical_smiles, get_fcd
+from .fcd import get_fcd, get_predictions, load_ref_model
+from .utils import calculate_frechet_distance, canonical_smiles
 
-__version__ = "1.1"
+__version__ = "1.2"
