@@ -11,27 +11,21 @@ You can install the FCD using
 pip install fcd
 ```
 
-rdkit is best install via conda
-```
-conda install rdkit -c rdkit
-```
-
 # Requirements
 ```
-python>3<3.8
 numpy
-tensorflow>1.8
-keras>2.1
+torch
 scipy
+rdkit
 ```
-rdkit is causing troubles with python3.8 for me. You might wanna opt for 3.7.
-For the effect of versions on results see `tests/test_results.csv`.
-Using the current versions of tensorflow (2.1.0) and keras (2.3.1) results differ from previous versions but
-are probably negligible.
 
-
+# Updates
 ## Version 1.1 changes
 - Got rid of unneeded imports
 - `load_ref_model` doesn't need an argument any more to load a model.
 - `canonical` and `canonical_smiles` now return `None` for invalid smiles.
 - Added `get_fcd` as a quick way to get a the fcd score from two lists of smiles.
+
+## Version 1.2 changes
+- Ported the package to pytorch with the help of https://github.com/insilicomedicine/fcd_torch
+- pytorch allows a lighter package and is more popular than Tensorflow which saves an additional install
