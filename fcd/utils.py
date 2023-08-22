@@ -1,12 +1,15 @@
-import numpy as np
-from rdkit import Chem
 from contextlib import contextmanager
+from multiprocessing import Pool
+
+import numpy as np
 import torch
+from rdkit import Chem
+from scipy import linalg
 from torch import nn
 from torch.utils.data import Dataset
-from .torch_layers import Reverse, IndexTuple, IndexTensor, Transpose, SamePadding1d
-from scipy import linalg
-from multiprocessing import Pool
+
+from .torch_layers import (IndexTensor, IndexTuple, Reverse, SamePadding1d,
+                           Transpose)
 
 __vocab = [
     "C",
@@ -54,6 +57,11 @@ __two_letters = {"r", "i", "l"}
 def get_one_hot(smiles, pad_len=-1):
     smiles = smiles + "."
     one_hot = np.zeros((len(smiles) if pad_len < 0 else pad_len, len(__vocab)))
+    
+    if len(smiles) == 1:
+        one_hot[0, __vocab_c2i.get(".")] = 1
+        return one_hot
+    
     src = 0
     dst = 0
     while True:
