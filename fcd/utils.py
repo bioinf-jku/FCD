@@ -1,5 +1,7 @@
+import re
 from contextlib import contextmanager
 from multiprocessing import Pool
+from typing import List
 
 import numpy as np
 import torch
@@ -8,74 +10,61 @@ from scipy import linalg
 from torch import nn
 from torch.utils.data import Dataset
 
-from .torch_layers import (IndexTensor, IndexTuple, Reverse, SamePadding1d,
-                           Transpose)
+from .torch_layers import IndexTensor, IndexTuple, Reverse, SamePadding1d, Transpose
 
-__vocab = [
-    "C",
-    "N",
-    "O",
-    "H",
-    "F",
-    "Cl",
-    "P",
-    "B",
-    "Br",
-    "S",
-    "I",
-    "Si",
-    "#",
-    "(",
-    ")",
-    "+",
-    "-",
-    "1",
-    "2",
-    "3",
-    "4",
-    "5",
-    "6",
-    "7",
-    "8",
-    "=",
-    "[",
-    "]",
-    "@",
-    "c",
-    "n",
-    "o",
-    "s",
-    "X",
-    ".",
-]
-__vocab_i2c = {i: k for i, k in enumerate(__vocab)}
+# fmt: off
+__vocab = ["C","N","O","H","F","Cl","P","B","Br","S","I","Si","#","(",")","+","-","1","2","3","4","5","6","7","8","=","[","]","@","c","n","o","s","X","."]
+# fmt: on
 __vocab_c2i = {k: i for i, k in enumerate(__vocab)}
 __unk = __vocab_c2i["X"]
-__two_letters = {"r", "i", "l"}
 
 
-def get_one_hot(smiles, pad_len=-1):
+sorted_vocab = __vocab[:]
+sorted_vocab.sort()  # sort alphabetically
+sorted_vocab.sort(key=len, reverse=True)  # sort by length for regex
+FULL_REGEX = "|".join(
+    "(%s)" % re.escape(base_symbol) for base_symbol in sorted_vocab
+)  # Tries to match longer tokens first.
+FULL_REGEX += "|."  # Handle unkown characters
+
+
+def tokenize(smiles: str) -> List[str]:
+    """Tokenizes the given smiles string. Needed for multi-character tokens like 'Cl'
+
+    Args:
+        smiles (str): Input molecule as Smiles
+
+    Returns:
+        List[str]: List of tokens
+    """
+    tok_smile = [mo.group() for mo in re.finditer(FULL_REGEX, smiles)]
+    assert "".join(tok_smile) == smiles
+    return tok_smile
+
+
+def get_one_hot(smiles: str, pad_len: int = -1) -> np.ndarray:
+    """Generate one-hot representation of a Smiles string.
+
+    Args:
+        smiles (str): Input molecule as Smiles
+        pad_len (int, optional): Whether or not to pad to a given size. Defaults to -1.
+
+    Returns:
+        np.ndarray: Array containing the one-hot encoded Smiles
+    """
     smiles = smiles + "."
-    one_hot = np.zeros((len(smiles) if pad_len < 0 else pad_len, len(__vocab)))
-    
-    if len(smiles) == 1:
-        one_hot[0, __vocab_c2i.get(".")] = 1
-        return one_hot
-    
-    src = 0
-    dst = 0
-    while True:
-        if smiles[src + 1] in __two_letters:
-            sym = smiles[src : src + 2]
-            src += 2
-        else:
-            sym = smiles[src]
-            src += 1
-        one_hot[dst, __vocab_c2i.get(sym, __unk)] = 1
-        dst += 1
-        if smiles[src] == "." or dst == one_hot.shape[0] - 1:
-            one_hot[dst, __vocab_c2i.get(".")] = 1
-            break
+
+    # initialize array
+    array_length = len(smiles) if pad_len < 0 else pad_len
+    vocab_size = len(__vocab)
+    one_hot = np.zeros((array_length, vocab_size))
+
+    tokens = tokenize(smiles)
+    numeric = [__vocab_c2i.get(token, __unk) for token in tokens]
+
+    for pos, num in enumerate(numeric):
+        one_hot[pos, num] = 1
+
     return one_hot
 
 
