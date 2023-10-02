@@ -63,6 +63,8 @@ def get_one_hot(smiles: str, pad_len: int = -1) -> np.ndarray:
     numeric = [__vocab_c2i.get(token, __unk) for token in tokens]
 
     for pos, num in enumerate(numeric):
+        if pos >= array_length:
+            break
         one_hot[pos, num] = 1
 
     return one_hot
