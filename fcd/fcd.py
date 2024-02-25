@@ -68,7 +68,9 @@ def get_predictions(
     dataloader = DataLoader(
         SmilesDataset(smiles_list), batch_size=batch_size, num_workers=n_jobs
     )
-    with todevice(model, device), torch.no_grad():
+    # inference_mode() instead of no_grad() (original) for better performance
+    # see https://pytorch.org/docs/stable/notes/autograd.html
+    with todevice(model, device), torch.inference_mode():
         chemnet_activations = []
         for batch in dataloader:
             chemnet_activations.append(
@@ -76,7 +78,9 @@ def get_predictions(
                 .to("cpu")
                 .detach()
                 .numpy()
+                .astype(np.float32)  # this eliminates the memory leak and preserves the FCD values
             )
+
     return np.row_stack(chemnet_activations)
 
 
