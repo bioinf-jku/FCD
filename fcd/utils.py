@@ -114,7 +114,7 @@ class SmilesDataset(Dataset):
 
     def __getitem__(self, idx):
         smiles = self.smiles_list[idx]
-        features = get_one_hot(smiles, 350)
+        features = get_one_hot(smiles, self.__PAD_LEN)
         return features / features.shape[1]
 
     def __len__(self):
