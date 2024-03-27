@@ -78,7 +78,7 @@ def get_predictions(
                 .to("cpu")
                 .detach()
                 .numpy()
-                .astype(np.float32)  # this eliminates the memory leak and preserves the FCD values
+                .astype(np.float32)  # this reduces the memory footprint and preserves the FCD values
             )
 
     return np.row_stack(chemnet_activations)
