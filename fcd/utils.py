@@ -1,4 +1,5 @@
 import re
+import warnings
 from contextlib import contextmanager
 from multiprocessing import Pool
 from typing import List
@@ -10,7 +11,7 @@ from scipy import linalg
 from torch import nn
 from torch.utils.data import Dataset
 
-from .torch_layers import IndexTensor, IndexTuple, Reverse, SamePadding1d, Transpose
+from fcd.torch_layers import IndexTensor, IndexTuple, Reverse, SamePadding1d, Transpose
 
 # fmt: off
 __vocab = ["C","N","O","H","F","Cl","P","B","Br","S","I","Si","#","(",")","+","-","1","2","3","4","5","6","7","8","=","[","]","@","c","n","o","s","X","."]
@@ -42,7 +43,7 @@ def tokenize(smiles: str) -> List[str]:
     return tok_smile
 
 
-def get_one_hot(smiles: str, pad_len: int = -1) -> np.ndarray:
+def get_one_hot(smiles: str, pad_len: int | None = None) -> np.ndarray:
     """Generate one-hot representation of a Smiles string.
 
     Args:
@@ -52,10 +53,13 @@ def get_one_hot(smiles: str, pad_len: int = -1) -> np.ndarray:
     Returns:
         np.ndarray: Array containing the one-hot encoded Smiles
     """
+    # add end token
     smiles = smiles + "."
 
     # initialize array
-    array_length = len(smiles) if pad_len < 0 else pad_len
+    array_length = len(smiles) if pad_len is None else pad_len
+    assert array_length >= len(smiles), "Pad length must be greater than the length of the input SMILES string + 1."
+
     vocab_size = len(__vocab)
     one_hot = np.zeros((array_length, vocab_size))
 
@@ -106,22 +110,57 @@ def load_imported_model(keras_config):
 
 
 class SmilesDataset(Dataset):
-    __PAD_LEN = 350
+    """
+    A dataset class for handling SMILES data.
 
-    def __init__(self, smiles_list):
+    Args:
+        smiles_list (list): A list of SMILES strings.
+        pad_len (int, optional): The length to pad the SMILES strings to. If not provided, the default pad length of 350 will be used.
+        warn (bool, optional): Whether to display a warning message if the specified pad length is different from the default. Defaults to True.
+
+    Attributes:
+        smiles_list (list): A list of SMILES strings.
+        pad_len (int): The length to pad the SMILES strings to.
+
+    """
+
+    def __init__(self, smiles_list, pad_len=None, warn=True):
         super().__init__()
+        DEFAULT_PAD_LEN = 350
+
         self.smiles_list = smiles_list
+        max_len = max(len(smiles) for smiles in smiles_list) + 1  # plus one for the end token
+
+        if pad_len is None:
+            pad_len = max(DEFAULT_PAD_LEN, max_len)
+        else:
+            if pad_len < max_len:
+                raise ValueError(f"Specified pad_len {pad_len} is less than max_len {max_len}")
+
+        if pad_len != DEFAULT_PAD_LEN:
+            warnings.warn(
+                """Padding lengths differing from the default of 350 may affect FCD scores. See https://github.com/hogru/GuacaMolEval.
+                Use warn=False to suppress this warning."""
+            )
+
+        self.pad_len = pad_len
 
     def __getitem__(self, idx):
         smiles = self.smiles_list[idx]
-        features = get_one_hot(smiles, 350)
+        features = get_one_hot(smiles, pad_len=self.pad_len)
         return features / features.shape[1]
 
     def __len__(self):
         return len(self.smiles_list)
 
 
-def calculate_frechet_distance(mu1, sigma1, mu2, sigma2, eps=1e-6):
+def calculate_frechet_distance(
+    mu1: np.ndarray,
+    sigma1: np.ndarray,
+    mu2: np.ndarray,
+    sigma2: np.ndarray,
+    eps: float = 1e-6,
+) -> float:
     """Numpy implementation of the Frechet Distance.
     The Frechet distance between two multivariate Gaussians X_1 ~ N(mu_1, C_1)
     and X_2 ~ N(mu_2, C_2) is
@@ -151,21 +190,20 @@ def calculate_frechet_distance(mu1, sigma1, mu2, sigma2, eps=1e-6):
     sigma1 = np.atleast_2d(sigma1)
     sigma2 = np.atleast_2d(sigma2)
 
-    assert (
-        mu1.shape == mu2.shape
-    ), "Training and test mean vectors have different lengths"
-    assert (
-        sigma1.shape == sigma2.shape
-    ), "Training and test covariances have different dimensions"
+    assert mu1.shape == mu2.shape, "Training and test mean vectors have different lengths"
+    assert sigma1.shape == sigma2.shape, "Training and test covariances have different dimensions"
 
     diff = mu1 - mu2
 
     # product might be almost singular
     covmean, _ = linalg.sqrtm(sigma1.dot(sigma2), disp=False)
-    if not np.isfinite(covmean).all():
+    is_real = np.allclose(np.diagonal(covmean).imag, 0, atol=1e-3)
+
+    if not np.isfinite(covmean).all() or not is_real:
         offset = np.eye(sigma1.shape[0]) * eps
         covmean = linalg.sqrtm((sigma1 + offset).dot(sigma2 + offset))
 
+    assert isinstance(covmean, np.ndarray)
     # numerical error might give slight imaginary component
     if np.iscomplexobj(covmean):
         if not np.allclose(np.diagonal(covmean).imag, 0, atol=1e-3):
@@ -175,7 +213,7 @@ def calculate_frechet_distance(mu1, sigma1, mu2, sigma2, eps=1e-6):
 
     tr_covmean = np.trace(covmean)
 
-    return diff.dot(diff) + np.trace(sigma1) + np.trace(sigma2) - 2 * tr_covmean
+    return float(diff.dot(diff) + np.trace(sigma1) + np.trace(sigma2) - 2 * tr_covmean)
 
 
 @contextmanager
@@ -188,11 +226,11 @@ def todevice(model, device):
 
 def canonical(smi):
     try:
-        return Chem.MolToSmiles(Chem.MolFromSmiles(smi))
-    except:
+        return Chem.MolToSmiles(Chem.MolFromSmiles(smi))  # type: ignore
+    except Exception:
         return None
 
 
-def canonical_smiles(smiles, njobs=32):
+def canonical_smiles(smiles, njobs=-1):
     with Pool(njobs) as pool:
         return pool.map(canonical, smiles)
