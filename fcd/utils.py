@@ -2,7 +2,7 @@ import re
 import warnings
 from contextlib import contextmanager
 from multiprocessing import Pool
-from typing import List
+from typing import List, Optional
 
 import numpy as np
 import torch
@@ -43,7 +43,7 @@ def tokenize(smiles: str) -> List[str]:
     return tok_smile
 
 
-def get_one_hot(smiles: str, pad_len: int | None = None) -> np.ndarray:
+def get_one_hot(smiles: str, pad_len: Optional[int] = None) -> np.ndarray:
     """Generate one-hot representation of a Smiles string.
 
     Args:

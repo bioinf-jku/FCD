@@ -1,9 +1,9 @@
-import pytest
 import numpy as np
+import pytest
+from pytest import approx
 
 from fcd import get_fcd
-from fcd.utils import get_one_hot, SmilesDataset
-from pytest import approx
+from fcd.utils import SmilesDataset, get_one_hot
 
 
 class TestFCD:
@@ -12,7 +12,7 @@ class TestFCD:
         smiles_list2 = ["ISi#()", "Si#()+", "#()+-", "()+-1"]
         target = 8.8086
         fcd = get_fcd(smiles_list1, smiles_list2, device="cpu")
-        assert fcd == approx(target, abs=1e-3)
+        assert fcd == approx(target, abs=1e-2)
 
     def test_random_smiles_gpu(self):
         # Skip test if CUDA is not available

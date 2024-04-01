@@ -1,4 +1,13 @@
 # Fréchet ChemNet Distance
+![PyPI](https://img.shields.io/pypi/v/fcd)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/fcd)
+![Tests (master)](https://github.com/bioinf-jku/fcd/actions/workflows/test_master.yml/badge.svg?branch=dev)
+![Tests (dev)](https://github.com/bioinf-jku/fcd/actions/workflows/test_dev.yml/badge.svg?branch=dev)
+![PyPI - Downloads](https://img.shields.io/pypi/dm/fcd)
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/bioinf-jku/fcd)
+![GitHub release date](https://img.shields.io/github/release-date/bioinf-jku/fcd)
+![GitHub](https://img.shields.io/github/license/bioinf-jku/fcd)
+
 
 Code for the paper "Fréchet ChemNet Distance: A Metric for Generative Models for Molecules in Drug Discovery"
 [JCIM](https://pubs.acs.org/doi/10.1021/acs.jcim.8b00234) /

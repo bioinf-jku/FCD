@@ -50,7 +50,7 @@ def get_predictions(
     smiles_list: List[str],
     batch_size: int = 128,
     n_jobs: int = 1,
-    device: str | None = None,
+    device: Optional[str] = None,
 ) -> np.ndarray:
     """Calculate Chemnet activations
 
@@ -81,7 +81,7 @@ def get_predictions(
     return np.row_stack(chemnet_activations)
 
 
-def get_fcd(smiles1: List[str], smiles2: List[str], model: nn.Module | None = None, device=None) -> float:
+def get_fcd(smiles1: List[str], smiles2: List[str], model: Optional[nn.Module] = None, device=None) -> float:
     """Calculate FCD between two sets of Smiles
 
     Args:
