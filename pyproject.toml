@@ -1,0 +1,64 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "fcd"
+version = "1.2.2"
+dependencies = ["torch", "numpy", "scipy", "rdkit"]
+requires-python = ">=3.8"
+authors = [
+    { name = "Philipp Renz", email = "renz.ph@gmail.com" },
+]
+description = "Fréchet ChEMNet Distance"
+readme = "README.md"
+license = { file = "LICENSE" }
+keywords = ["cheminformatics", "machine learning", "deep learning", "generative models"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Development Status :: 5 - Production/Stable",
+]
+
+[project.urls]
+Homepage = "https://github.com/bioinf-jku/FCD"
+Documentation = "https://github.com/bioinf-jku/FCD"
+Repository = "https://github.com/bioinf-jku/FCD"
+
+[tool.ruff]
+# Exclude a variety of commonly ignored directories.
+exclude = [
+    ".bzr",
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".git-rewrite",
+    ".hg",
+    ".ipynb_checkpoints",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".pyenv",
+    ".pytest_cache",
+    ".pytype",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    ".vscode",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+    "node_modules",
+    "site-packages",
+    "venv",
+]
+
+# Same as Black.
+line-length = 120
+indent-width = 4
+
+# Assume Python 3.8
+target-version = "py38"
+
