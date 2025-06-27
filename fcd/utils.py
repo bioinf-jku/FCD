@@ -197,7 +197,7 @@ def calculate_frechet_distance(
     diff = mu1 - mu2
 
     # product might be almost singular
-    covmean, _ = linalg.sqrtm(sigma1.dot(sigma2), disp=False)
+    covmean = linalg.sqrtm(sigma1.dot(sigma2))
     is_real = np.allclose(np.diagonal(covmean).imag, 0, atol=1e-3)
 
     if not np.isfinite(covmean).all() or not is_real:
