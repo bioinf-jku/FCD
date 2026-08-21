@@ -78,7 +78,7 @@ def get_predictions(
             chemnet_activations.append(
                 model(batch.transpose(1, 2).float().to(device)).to("cpu").detach().numpy().astype(np.float32)
             )
-    return np.row_stack(chemnet_activations)
+    return np.vstack(chemnet_activations)
 
 
 def get_fcd(smiles1: List[str], smiles2: List[str], model: Optional[nn.Module] = None, device=None) -> float:
